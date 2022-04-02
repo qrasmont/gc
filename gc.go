@@ -4,12 +4,63 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/qrasmont/gc/git"
 	"github.com/qrasmont/gc/style"
 )
 
+type keyMap struct {
+	Up     key.Binding
+	Down   key.Binding
+	Select key.Binding
+	Delete key.Binding
+	Help   key.Binding
+	Quit   key.Binding
+}
+
+func (k keyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Help, k.Quit}
+}
+
+func (k keyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Up, k.Down, k.Select, k.Delete},
+		{k.Help, k.Quit},
+	}
+}
+
+var keys = keyMap{
+	Up: key.NewBinding(
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "move up"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "move down"),
+	),
+	Select: key.NewBinding(
+		key.WithKeys(" ", "s"),
+		key.WithHelp("space/s", "select branch"),
+	),
+	Delete: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "delete selection"),
+	),
+	Help: key.NewBinding(
+		key.WithKeys("?"),
+		key.WithHelp("?", "toggle help"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("q", "esc", "ctrl+c"),
+		key.WithHelp("q", "quit"),
+	),
+}
+
 type model struct {
+	keys     keyMap
+	help     help.Model
 	branches []string
 	cursor   int
 	selected map[int]struct{}
@@ -18,7 +69,7 @@ type model struct {
 func getSelectedList(m model) []string {
 	var selection = []string{}
 
-	for i, _ := range m.selected {
+	for i := range m.selected {
 		selection = append(selection, m.branches[i])
 	}
 
@@ -31,8 +82,9 @@ func initialModel() model {
 		panic("oops")
 	}
 	return model{
+		keys:     keys,
+		help:     help.New(),
 		branches: branches,
-
 		selected: make(map[int]struct{}),
 	}
 }
@@ -44,23 +96,29 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
-	case tea.KeyMsg:
-		switch msg.String() {
+	case tea.WindowSizeMsg:
+		m.help.Width = msg.Width
 
-		case "ctrl+c", "q":
+	case tea.KeyMsg:
+		switch {
+
+		case key.Matches(msg, m.keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
+
+		case key.Matches(msg, m.keys.Quit):
 			return m, tea.Quit
 
-		case "up", "k":
+		case key.Matches(msg, m.keys.Up):
 			if m.cursor > 0 {
 				m.cursor--
 			}
 
-		case "down", "j":
+		case key.Matches(msg, m.keys.Down):
 			if m.cursor < len(m.branches)-1 {
 				m.cursor++
 			}
 
-		case " ":
+		case key.Matches(msg, m.keys.Select):
 			_, ok := m.selected[m.cursor]
 			if ok {
 				delete(m.selected, m.cursor)
@@ -68,7 +126,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selected[m.cursor] = struct{}{}
 			}
 
-		case "enter":
+		case key.Matches(msg, m.keys.Delete):
 			selection := getSelectedList(m)
 			git.Del(selection)
 			m = initialModel()
@@ -93,19 +151,19 @@ func (m model) View() string {
 		// Set selection
 		text := ""
 		if _, ok := m.selected[i]; ok {
-            text = style.BranchSelect(branch)
-        } else {
-            text = style.Branch(branch)
-        }
+			text = style.BranchSelect(branch)
+		} else {
+			text = style.Branch(branch)
+		}
 
 		// Render row
 		s += fmt.Sprintf("%s %s\n", cursor, text)
 	}
 
-	// Footer
-	s += "\nQuit: q or ctrl-c\tSelect: space\tDelete: enter\n"
+	// Footer help
+	helpView := m.help.View(m.keys)
 
-	return s
+	return s + "\n" + helpView
 }
 
 func main() {
