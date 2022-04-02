@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/qrasmont/gc/git"
+	"github.com/qrasmont/gc/style"
 )
 
 type model struct {
@@ -81,22 +82,24 @@ func (m model) View() string {
 	// Header
 	s := "Branches \n\n"
 
-	for i, choice := range m.branches {
+	for i, branch := range m.branches {
 
 		// Set the cursor
 		cursor := " "
 		if m.cursor == i {
-			cursor = ">"
+			cursor = "⮞"
 		}
 
 		// Set selection
-		checked := " "
+		text := ""
 		if _, ok := m.selected[i]; ok {
-			checked = "x"
-		}
+            text = style.BranchSelect(branch)
+        } else {
+            text = style.Branch(branch)
+        }
 
 		// Render row
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+		s += fmt.Sprintf("%s %s\n", cursor, text)
 	}
 
 	// Footer
