@@ -5,6 +5,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/qrasmont/gc/git"
 )
 
 type model struct {
@@ -14,8 +15,12 @@ type model struct {
 }
 
 func initialModel() model {
+	branches, err := git.Get()
+	if err != nil {
+		panic("oops")
+	}
 	return model{
-		branches: []string{"test", "test1", "test2"},
+		branches: branches,
 
 		selected: make(map[int]struct{}),
 	}
@@ -52,7 +57,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selected[m.cursor] = struct{}{}
 			}
 		case "enter":
-            // Here we'll execute the delete then quit
+			// Here we'll execute the delete then quit
 			return m, tea.Quit
 		}
 	}
@@ -61,12 +66,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    // Header
+	// Header
 	s := "Branches \n\n"
 
 	for i, choice := range m.branches {
 
-        // Set the cursor
+		// Set the cursor
 		cursor := " "
 		if m.cursor == i {
 			cursor = ">"
@@ -83,7 +88,7 @@ func (m model) View() string {
 	}
 
 	// Footer
-    s += "\nQuit: q or ctrl-c\tSelect: space\tDelete: enter\n"
+	s += "\nQuit: q or ctrl-c\tSelect: space\tDelete: enter\n"
 
 	return s
 }
