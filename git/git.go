@@ -1,6 +1,7 @@
 package git
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -38,4 +39,15 @@ func Get() ([]string, error) {
 
 	list := getBranchList(raw_b)
 	return list, nil
+}
+
+func Del(selection []string) error {
+	shell := os.Getenv("SHELL")
+	branches := fmt.Sprintf("%s", strings.Join(selection[:], " "))
+
+	err := exec.Command(shell, "-c", "git branch -D "+branches).Run()
+	if err != nil {
+		return err
+	}
+	return nil
 }

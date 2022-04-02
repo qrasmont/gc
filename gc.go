@@ -14,6 +14,16 @@ type model struct {
 	selected map[int]struct{}
 }
 
+func getSelectedList(m model) []string {
+	var selection = []string{}
+
+	for i, _ := range m.selected {
+		selection = append(selection, m.branches[i])
+	}
+
+	return selection
+}
+
 func initialModel() model {
 	branches, err := git.Get()
 	if err != nil {
@@ -56,9 +66,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.selected[m.cursor] = struct{}{}
 			}
+
 		case "enter":
-			// Here we'll execute the delete then quit
-			return m, tea.Quit
+			selection := getSelectedList(m)
+			git.Del(selection)
+			m = initialModel()
 		}
 	}
 
