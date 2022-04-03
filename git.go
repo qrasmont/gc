@@ -1,10 +1,12 @@
-package git
+package main
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/charmbracelet/bubbles/list"
 )
 
 func runGitBranch() ([]byte, error) {
@@ -17,7 +19,8 @@ func runGitBranch() ([]byte, error) {
 	return out, err
 }
 
-func getBranchList(raw_b []byte) []string {
+func getBranchList(raw_b []byte) []list.Item {
+	var items []list.Item
 	raw_s := string(raw_b)
 	branches := strings.Split(strings.ReplaceAll(raw_s, "\r\n", "\n"), "\n")
 	// Remove last element which is an empty line
@@ -26,12 +29,13 @@ func getBranchList(raw_b []byte) []string {
 	for i, branch := range branches {
 		branches[i] = strings.TrimLeft(branch, "*")
 		branches[i] = strings.TrimLeft(branches[i], " ")
+        items = append(items, item{name: branches[i]})
 	}
 
-	return branches
+	return items
 }
 
-func Get() ([]string, error) {
+func Get() ([]list.Item, error) {
 	raw_b, err := runGitBranch()
 	if err != nil {
 		return nil, err
