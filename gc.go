@@ -107,7 +107,7 @@ func getSelectedList(m model) []string {
 }
 
 func initialModel() model {
-	branches, err := Get()
+	branches, err := GitGetBranches()
 	if err != nil {
 		panic("oops")
 	}
@@ -150,9 +150,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.keys.Delete):
 			selection := getSelectedList(m)
-			Del(selection)
+			GitDelete(selection)
 
-			branches, err := Get()
+			branches, err := GitGetBranches()
 			if err != nil {
 				panic("oops")
 			}

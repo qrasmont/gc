@@ -35,7 +35,7 @@ func getBranchList(raw_b []byte) []list.Item {
 	return items
 }
 
-func Get() ([]list.Item, error) {
+func GitGetBranches() ([]list.Item, error) {
 	raw_b, err := runGitBranch()
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func Get() ([]list.Item, error) {
 	return list, nil
 }
 
-func Del(selection []string) error {
+func GitDelete(selection []string) error {
 	shell := os.Getenv("SHELL")
 	branches := fmt.Sprintf("%s", strings.Join(selection[:], " "))
 
