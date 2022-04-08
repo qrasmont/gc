@@ -91,8 +91,6 @@ func newKeyMaps() *keyMap {
 type model struct {
 	keys     *keyMap
 	branches []list.Item
-	cursor   int
-	selected map[int]struct{}
 	list     list.Model
 }
 
@@ -127,7 +125,6 @@ func initialModel() model {
 	return model{
 		keys:     keys,
 		branches: branches,
-		selected: make(map[int]struct{}),
 		list:     l,
 	}
 }
@@ -144,21 +141,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Quit):
 			return m, tea.Quit
 
-		case key.Matches(msg, m.keys.Up):
-			if m.cursor > 0 {
-				m.cursor--
-			}
-
-		case key.Matches(msg, m.keys.Down):
-			if m.cursor < len(m.branches)-1 {
-				m.cursor++
-			}
-
 		case key.Matches(msg, m.keys.Select):
-			cc := m.branches[m.cursor].(item).selected
-			text := m.branches[m.cursor].(item).name
-			m.branches[m.cursor] = item{name: text, selected: !cc}
-			m.list.SetItem(m.cursor, m.branches[m.cursor])
+			index := m.list.Index()
+			cc := m.branches[index].(item).selected
+			text := m.branches[index].(item).name
+			m.branches[index] = item{name: text, selected: !cc}
+			m.list.SetItem(index, m.branches[index])
 
 		case key.Matches(msg, m.keys.Delete):
 			selection := getSelectedList(m)
@@ -170,7 +158,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			m.branches = branches
-            m.list.SetItems(m.branches)
+			m.list.SetItems(m.branches)
 		}
 	case tea.WindowSizeMsg:
 		h, v := style.App.GetFrameSize()
