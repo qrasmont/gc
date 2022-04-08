@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -20,47 +19,22 @@ func (i item) Title() string       { return i.name }
 func (i item) Description() string { return "" }
 func (i item) FilterValue() string { return i.name }
 
-type itemDelegate struct{}
-
-func (d itemDelegate) Height() int                               { return 1 }
-func (d itemDelegate) Spacing() int                              { return 0 }
-func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
-
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(item)
-	if !ok {
-		return
-	}
-
-	str := ""
-	if i.selected {
-
-		str = style.CheckedIcon + style.BranchSelect().Render(i.name)
-	} else {
-		str = style.CurrentBranch().Render(i.name)
-	}
-
-	fn := func(s string) string {
-		if index == m.Index() {
-			return "⮞ " + s
-		}
-		return "  " + s
-	}
-
-	fmt.Fprintf(w, fn(str))
-}
-
 type keyMap struct {
-	Up     key.Binding
-	Down   key.Binding
-	Select key.Binding
-	Delete key.Binding
-	Help   key.Binding
-	Quit   key.Binding
+	Up         key.Binding
+	Down       key.Binding
+	KeepSelect key.Binding
+	Select     key.Binding
+	Delete     key.Binding
+	Help       key.Binding
+	Quit       key.Binding
 }
 
 func newKeyMaps() *keyMap {
 	return &keyMap{
+		KeepSelect: key.NewBinding(
+			key.WithKeys("S"),
+			key.WithHelp("S", "keep select"),
+		),
 		Up: key.NewBinding(
 			key.WithKeys("up", "k"),
 			key.WithHelp("↑/k", "move up"),
@@ -106,13 +80,14 @@ func getSelectedList(m model) []string {
 	return selection
 }
 
+var keys = newKeyMaps()
+
 func initialModel() model {
 	branches, err := GitGetBranches()
 	if err != nil {
 		panic("oops")
 	}
 
-	var keys = newKeyMaps()
 	l := list.New(branches, itemDelegate{}, 0, 0)
 	l.Title = "Branches:"
 	l.SetShowStatusBar(false)
