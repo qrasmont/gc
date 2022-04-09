@@ -80,6 +80,7 @@ func getSelectedList(m model) []string {
 	return selection
 }
 
+// FIXME Need a better way to share keys
 var keys = newKeyMaps()
 
 func initialModel() model {

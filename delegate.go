@@ -10,6 +10,8 @@ import (
 	"github.com/qrasmont/gc/style"
 )
 
+// FIXME must be a better way than a global
+// Can I somehow access my model in the delegate func ?
 var keepSelect bool = false
 
 type itemDelegate struct{}
