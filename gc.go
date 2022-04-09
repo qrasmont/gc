@@ -94,7 +94,7 @@ func initialModel() model {
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(true)
 	l.AdditionalFullHelpKeys = func() []key.Binding {
-		return []key.Binding{keys.Select, keys.Delete}
+		return []key.Binding{keys.Select, keys.Delete, keys.KeepSelect}
 	}
 
 	return model{
