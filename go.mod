@@ -1,4 +1,4 @@
-module github.com/qrasmont/gc
+module github.com/qrasmont/rake
 
 go 1.17
 

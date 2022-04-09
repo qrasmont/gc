@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/qrasmont/gc/style"
+	"github.com/qrasmont/rake/style"
 )
 
 // FIXME must be a better way than a global
